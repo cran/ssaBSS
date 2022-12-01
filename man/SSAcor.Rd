@@ -16,7 +16,7 @@ SSAcor method for identifying non-stationarity in the covariance structure.
 \usage{
 SSAcor(X, \ldots)
 
-\method{SSAcor}{default}(X, K, n.cuts = NULL, tau = 1, \ldots)
+\method{SSAcor}{default}(X, K, n.cuts = NULL, tau = 1, eps = 1e-6, maxiter = 2000, \ldots)
 \method{SSAcor}{ts}(X, \ldots)
 }
 
@@ -24,22 +24,27 @@ SSAcor(X, \ldots)
   \item{X}{A numeric matrix or a multivariate time series object of class \code{\link{ts}}, \code{\link[xts]{xts}} or \code{\link[zoo]{zoo}}. Missing values are not allowed.}
   \item{K}{Number of intervals the time series is split into.}
   \item{n.cuts}{A K+1 vector of values that correspond to the breaks which are used for splitting the data. Default is intervals of equal length.}
-  \item{tau}{The lag as a scalar. Default is 1.}
+  \item{tau}{The lag as a scalar or a vector. Default is 1.}
+  \item{eps}{Convergence tolerance.}
+  \item{maxiter}{The maximum number of iterations.}
   \item{\ldots}{Further arguments to be passed to or from methods.}
 }
 
 \details{
 
-Assume that a \eqn{p}-variate \eqn{{\bf Y}}{Y} with \eqn{T} observations is whitened, i.e. \eqn{{\bf Y}={\bf S}^{-1/2}({\bf X}_t - \frac{1}{T}\sum_{t=1}^T {\bf X}_{t})}{Y = S^(-1/2)*(X_t - (1/T)*sum_t(X_t))}, \if{html}{for \eqn{t = 1, \ldots, T},}
+Assume that a \eqn{p}-variate \eqn{{\bf Y}}{Y} with \eqn{T} observations is whitened, i.e. \eqn{{\bf Y}={\bf S}^{-1/2}({\bf X}_t - \frac{1}{T}\sum_{t=1}^T {\bf X}_{t})}{Y = S^(-1/2)*(X_t - (1/T)*sum_t(X_t))}, \if{html}{for \eqn{t = 1, \ldots, T,}}
 where \eqn{{\bf S}}{S} is the sample covariance matrix of \eqn{{\bf X}}{X}. 
 
-The values of \eqn{{\bf Y}}{Y} are then split into \eqn{K} disjoint intervals \eqn{T_i}. For a chosen \eqn{\tau}{tau}, algorithm first calculates matrix
-\deqn{{\bf M} = \sum_{i = 1}^K \frac{T_i}{T}({\bf S}_{\tau,T} - {\bf S}_{\tau,T_i})({\bf S}_{\tau,T} - {\bf S}_{\tau,T_i})^T,}{M = sum[(T_i/(T)) (S_(tau,T) - S_(tau, Ti))*(S_(tau,T) - S_(tau, Ti))'],}
-where \if{html}{\eqn{i = 1, \ldots, K},} \eqn{K} is the number of breakpoints, \eqn{{\bf S}_{\tau,T}}{S_(tau,T)} is the global sample covariance, and \eqn{{\bf S}_{\tau,T_i}}{S_(tau, Ti)} is the sample covariance of values of \eqn{{\bf Y}}{Y} which belong to a disjoint interval \eqn{T_i}.
+The values of \eqn{{\bf Y}}{Y} are then split into \eqn{K} disjoint intervals \eqn{T_i}. For all lags \eqn{j=1, ..., ntau}, algorithm first calculates matrices
+\deqn{{\bf M_j} = \sum_{i = 1}^K \frac{T_i}{T}({\bf S}_{j,T} - {\bf S}_{j,T_i})({\bf S}_{j,T} - {\bf S}_{j,T_i})^T,}{M_j = sum[(T_i/(T)) (S_(j,T) - S_(j, Ti))*(S_(j,T) - S_(j, Ti))'],}
+where \if{html}{\eqn{i = 1, \ldots, K},} \eqn{K} is the number of breakpoints, \eqn{{\bf S}_{J,T}}{S_(j,T)} is the global sample covariance for lag \eqn{j}, and \eqn{{\bf S}_{\tau,T_i}}{S_(j, Ti)} is the sample covariance of values of \eqn{{\bf Y}}{Y} which belong to a disjoint interval \eqn{T_i}.
 
-The algorithm finds an orthogonal matrix \eqn{{\bf U}}{U} via eigendecomposition
-\deqn{{\bf M} = {\bf UDU}^T.}{M = UDU^T.}
-The final unmixing matrix is then \eqn{{\bf W} = {\bf U S}^{-1/2}}{W = U S^(-1/2)}. The first \eqn{k} rows of \eqn{{\bf U}}{U} are the eigenvectors corresponding to the non-zero eigenvalues and the rest correspond to the zero eigenvalues. In the same way, the first \eqn{k} rows of \eqn{{\bf W}}{W} project the observed time series to the subspace of components with non-stationary covariance, and the last \eqn{p-k} rows to the subspace of components with stationary covariance. 
+The algorithm finds an orthogonal matrix \eqn{{\bf U}}{U} by maximizing 
+\deqn{\sum_{j = 1}^{ntau} ||\textrm{diag}({\bf}{\bf U}{\bf M}_j {\bf U}')||^2.}{sum(||diag(U M_j U')||^2),}
+\if{html}{where \eqn{j = 1, \ldots, ntau}.}
+
+The final unmixing matrix is then \eqn{{\bf W} = {\bf U S}^{-1/2}}{W = U S^(-1/2)}. 
+Then the pseudo eigenvalues \eqn{{\bf D}_i = \textrm{diag}({\bf}{\bf U}{\bf M}_i {\bf U}') = \textrm{diag}(d_{i,1}, \ldots, d_{i,p})}{D_i = diag(U M_i U') = (d_i1, ..., d_ip)} are obtained and the value of \eqn{d_{i,j}}{d_ij} tells if the \eqn{j}th component is nonstationary with respect to \eqn{{\bf M}_i}{M_i}. The first \eqn{k} rows of \eqn{{\bf W}}{W} project the observed time series to the subspace of components with non-stationary covariance, and the last \eqn{p-k} rows to the subspace of components with stationary covariance. 
 
 }
 
@@ -49,7 +54,8 @@ The final unmixing matrix is then \eqn{{\bf W} = {\bf U S}^{-1/2}}{W = U S^(-1/2
   \item{S }{The estimated sources as time series object standardized to have mean 0 and unit variances.}
   \item{M }{Used separation matrix.}
   \item{K }{Number of intervals the time series is split into.}
-  \item{D }{Eigenvalues of M.}
+  \item{D }{The sums of pseudo eigenvalues.}
+  \item{DTable }{The peudo eigenvalues of size \emph{ntau*p} to see which type of nonstationarity there exists in each component.}
   \item{MU }{The mean vector of \code{X}.}
   \item{n.cut }{Used K+1 vector of values that correspond to the breaks which are used for splitting the data.}
   \item{k }{The used lag.}

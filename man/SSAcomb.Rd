@@ -23,7 +23,7 @@ SSAcomb(X, \ldots)
   \item{X}{A numeric matrix or a multivariate time series object of class \code{\link{ts}}, \code{\link[xts]{xts}} or \code{\link[zoo]{zoo}}. Missing values are not allowed.}
   \item{K}{Number of intervals the time series is split into.}
   \item{n.cuts}{A K+1 vector of values that correspond to the breaks which are used for splitting the data. Default is intervals of equal length.}
-  \item{tau}{The lag as a scalar. Default is 1.}
+  \item{tau}{The lag as a scalar or a vector. Default is 1.}
   \item{eps}{Convergence tolerance.}
   \item{maxiter}{The maximum number of iterations.}
   \item{\ldots}{Further arguments to be passed to or from methods.}
@@ -31,14 +31,14 @@ SSAcomb(X, \ldots)
 
 \details{
 
-Assume that a \eqn{p}-variate \eqn{{\bf Y}}{Y} with \eqn{T} observations is whitened, i.e. \eqn{{\bf Y}={\bf S}^{-1/2}({\bf X}_t - \frac{1}{T}\sum_{t=1}^T {\bf X}_{t})}{Y = S^(-1/2)*(X_t - (1/T)*sum_t(X_t))}, \if{html}{for \eqn{t = 1, \ldots, T},}
+Assume that a \eqn{p}-variate \eqn{{\bf Y}}{Y} with \eqn{T} observations is whitened, i.e. \eqn{{\bf Y}={\bf S}^{-1/2}({\bf X}_t - \frac{1}{T}\sum_{t=1}^T {\bf X}_{t})}{Y = S^(-1/2)*(X_t - (1/T)*sum_t(X_t))}, \if{html}{for \eqn{t = 1, \ldots, T,}}
 where \eqn{{\bf S}}{S} is the sample covariance matrix of \eqn{{\bf X}}{X}. 
 
-The values of \eqn{{\bf Y}}{Y} are then split into \eqn{K} disjoint intervals \eqn{T_i}. For a chosen \eqn{\tau}{tau}, algorithm first calculates the \eqn{{\bf M}}{M} matrices from SSAsir (matrix \eqn{{\bf M}_1}{M_1}), SSAsave (matrix \eqn{{\bf M}_2}{M_2}) and SSAcor (matrix \eqn{{\bf M}_3}{M_3}).
+The values of \eqn{{\bf Y}}{Y} are then split into \eqn{K} disjoint intervals \eqn{T_i}. For all lags \eqn{j = 1, ..., ntau}, algorithm first calculates the \eqn{{\bf M}}{M} matrices from SSAsir (matrix \eqn{{\bf M}_1}{M_1}), SSAsave (matrix \eqn{{\bf M}_2}{M_2}) and SSAcor (matrices \eqn{{\bf M}_{j+2}}{M_(j+2)}).
 
 The algorithm finds an orthogonal matrix \eqn{{\bf U}}{U} by maximizing 
-\deqn{\sum_{i = 1}^3 ||\textrm{diag}({\bf}{\bf U}{\bf M}_i {\bf U}')||^2.}{sum(||diag(U M_i U')||^2),}
-\if{html}{where \eqn{i = 1, \ldots, 3}.} The final unmixing matrix is then \eqn{{\bf W} = {\bf US}^{-1/2}}{W = U S^(-1/2)}.
+\deqn{\sum_{i = 1}^{ntau+2} ||\textrm{diag}({\bf}{\bf U}{\bf M}_i {\bf U}')||^2.}{sum(||diag(U M_i U')||^2),}
+\if{html}{where \eqn{i = 1, \ldots, ntau + 2}.} The final unmixing matrix is then \eqn{{\bf W} = {\bf US}^{-1/2}}{W = U S^(-1/2)}.
 
 Then the pseudo eigenvalues \eqn{{\bf D}_i = \textrm{diag}({\bf}{\bf U}{\bf M}_i {\bf U}') = \textrm{diag}(d_{i,1}, \ldots, d_{i,p})}{D_i = diag(U M_i U') = (d_i1, ..., d_ip)} are obtained and the value of \eqn{d_{i,j}}{d_ij} tells if the \eqn{j}th component is nonstationary with respect to \eqn{{\bf M}_i}{M_i}.
 
@@ -51,7 +51,7 @@ Then the pseudo eigenvalues \eqn{{\bf D}_i = \textrm{diag}({\bf}{\bf U}{\bf M}_i
   \item{R }{Used M-matrices as an array.}
   \item{K }{Number of intervals the time series is split into.}
   \item{D }{The sums of pseudo eigenvalues.}
-  \item{DTable }{The peudo eigenvalues of size 3*p to see which type of nonstationarity there exists in each component.}
+  \item{DTable }{The peudo eigenvalues of size \emph{ntau + 2} to see which type of nonstationarity there exists in each component.}
   \item{MU }{The mean vector of \code{X}.}
   \item{n.cut }{Used K+1 vector of values that correspond to the breaks which are used for splitting the data.}
   \item{k }{The used lag.}
@@ -67,7 +67,7 @@ Markus Matilainen, Klaus Nordhausen
 }
 
 \seealso{
-\code{\link[JADE]{JADE}} \code{\link[JADE]{frjd}}
+\code{\link[JADE]{JADE}} \code{\link[JADE:rjd]{frjd}}
 
 }
 

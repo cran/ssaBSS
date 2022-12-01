@@ -9,7 +9,7 @@ Class: ssabss
 }
 
 \description{
-Class 'ssabss' (blind source separation in stationary subspace analysis) with methods plot, screeplot (prints a screeplot of an object of class 'ssabss') and ggscreeplot (prints a screeplot of an object of class 'ssabss' using package \code{\link[ggplot2]{ggplot2}}).
+Class 'ssabss' (blind source separation in stationary subspace analysis) with methods plot, screeplot (prints a screeplot of an object of class 'ssabss') and ggscreeplot (prints a screeplot of an object of class 'ssabss' using package \code{\link[ggplot2:ggplot2]{ggplot2}}).
 
 The class 'ssabss' also inherits methods from the class 'bss' in package \code{\link[JADE]{JADE}}: for extracting the components (\code{\link[JADE:bss.components]{bss.components}}), for plotting the components (\code{\link[JADE:plot.bss]{plot.bss}}), for printing (\code{\link[JADE:print.bss]{print.bss}}), and for extracting the coefficients (\code{\link[JADE:coef.bss]{coef.bss}}).
 
@@ -46,7 +46,7 @@ Markus Matilainen
 }
 
 \seealso{
- \code{\link{ASSA}}, \code{\link{SSAsir}}, \code{\link{SSAsave}}, \code{\link{SSAcor}}, \code{\link{SSAcomb}}, \code{\link[JADE]{JADE}}, \code{\link[ggplot2]{ggplot2}}
+ \code{\link{ASSA}}, \code{\link{SSAsir}}, \code{\link{SSAsave}}, \code{\link{SSAcor}}, \code{\link{SSAcomb}}, \code{\link[JADE]{JADE}}, \code{\link[ggplot2:ggplot2]{ggplot2}}
 }
 
 % Add one or more standard keywords, see file 'KEYWORDS' in the

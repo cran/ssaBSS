@@ -2,7 +2,7 @@
 SSAcor <- function(X, ...) UseMethod("SSAcor")
 
 # Changes in autocorrelation
-SSAcor.default <- function(X, K, n.cuts = NULL, tau = 1, ...) {
+SSAcor.default <- function(X, K, n.cuts = NULL, tau = 1, eps = 1e-6, maxiter = 2000, ...) {
   n <- nrow(X)
   p <- ncol(X)
   prep <- BSSprep(X)
@@ -10,18 +10,36 @@ SSAcor.default <- function(X, K, n.cuts = NULL, tau = 1, ...) {
   if (is.null(n.cuts)) n.cuts <- ceiling(seq(1, n, length = K + 1))
   N.cuts <- n.cuts + c(rep(0, K), 1)
   S <- array(0, dim = c(p, p, K))
-  Sall <- actau(Y, tau = tau)
-  for (i in 1:K) {
-    slice <- Y[N.cuts[i]:(N.cuts[i + 1] - 1), ]
-    sli.length <- nrow(slice)
-    S[, , i] <- sli.length*(Sall - actau(slice, tau = tau))%*%t(Sall - actau(slice, tau = tau))/n
+  ntau <- length(tau)
+  M <- array(0, dim = c(p, p, ntau))
+  jj <- 1
+  for (j in tau) {
+    Sall <- actau(Y, tau = j)
+    for (i in 1:K) {
+      slice <- Y[N.cuts[i]:(N.cuts[i + 1] - 1), ]
+      sli.length <- nrow(slice)
+      S[, , i] <- sli.length*(Sall - actau(slice, tau = j))%*%t(Sall - actau(slice, tau = j))/n
+    }
+    M[, , jj] <- apply(S, 1:2, sum)
+    jj <- jj + 1
   }
-  M <- apply(S, 1:2, sum)
-  EVD <- eigen(M, symmetric = TRUE)
-  W <- crossprod(EVD$vectors, prep$COV.sqrt.i)
+  JD <- frjd(M, eps = eps, maxiter = maxiter)
+  D <- JD$D
+  sumdg <- diag(apply(D, 1:2, sum))
+  ord <- order(sumdg, decreasing = TRUE)
+  P <- diag(p)
+  P <- P[ord, ]
+  DTable <- matrix(0, ncol = p, nrow = ntau)
+  for (j in 1:ntau) {
+    D[ , , j] <- P %*% tcrossprod(D[ , , j], P) #Diagonal elements are now in order
+    DTable[j, ] <- diag(D[ , , j])
+  }
+  rownames(DTable) <- paste("lag", tau)
+  V <- JD$V[, ord]
+  W <- crossprod(V, prep$COV.sqrt.i)
   S <- tcrossprod(prep$X.C, W)
   S <- ts(S, names = paste("Series", 1:p))
-  RES <- list(W = W, S = S, M = M, K = K, D = EVD$values, MU = prep$MEAN, n.cut = n.cuts, k = tau, method = "SSAcor")
+  RES <- list(W = W, S = S, M = M, K = K, D = colSums(DTable), DTable = DTable, MU = prep$MEAN, n.cut = n.cuts, k = tau, method = "SSAcor")
   class(RES) <- c("ssabss", "bss")
   RES
 }

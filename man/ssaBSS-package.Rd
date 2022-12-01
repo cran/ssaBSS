@@ -13,8 +13,8 @@ Stationary subspace analysis (SSA) is a blind source separation (BSS) variant wh
 \tabular{ll}{
 Package: \tab ssaBSS\cr
 Type: \tab Package\cr
-Version: \tab 0.1\cr
-Date: \tab 2021-04-06\cr
+Version: \tab 0.1.1\cr
+Date: \tab 2022-12-01\cr
 License: \tab GPL (>= 2)
 }
 This package contains functions for identifying different types of nonstationarity

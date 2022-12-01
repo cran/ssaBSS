@@ -9,24 +9,27 @@ SSAcomb.default <- function(X, K, n.cuts = NULL, tau = 1, eps = 1e-6, maxiter = 
   Y <- prep$Y 
   if (is.null(n.cuts)) n.cuts <- ceiling(seq(1, n, length = K + 1))
   N.cuts <- n.cuts + c(rep(0, K), 1)
+  ntau <- length(tau)
   
-  R <- array(0, dim = c(p, p, 3))
+  R <- array(0, dim = c(p, p, ntau + 2))
   R[, , 1] <- SSAsir(X, K, n.cuts)$M
   R[, , 2] <- SSAsave(X, K, n.cuts)$M
-  R[, , 3] <- SSAcor(X, K, n.cuts, tau)$M
+  for (i in 1:ntau) {
+    R[, , i + 2] <- SSAcor(X, K, n.cuts, tau, eps = eps, maxiter = maxiter)$M[, , i]
+  }
   JD <- frjd(R, eps = eps, maxiter = maxiter)
   D <- JD$D
   sumdg <- diag(apply(D, 1:2, sum))
   ord <- order(sumdg, decreasing = TRUE)
   P <- diag(p)
   P <- P[ord, ]
-  DTable <- matrix(0, ncol = p, nrow = 3)
-  for (j in 1:3) {
+  DTable <- matrix(0, ncol = p, nrow = ntau + 2)
+  for (j in 1:(ntau + 2)) {
     D[ , , j] <- P %*% tcrossprod(D[ , , j], P) #Diagonal elements are now in order
     DTable[j, ] <- diag(D[ , , j])
   }
   
-  rownames(DTable) <- c("Msir", "Msave", "Mcor")
+  rownames(DTable) <- c("Msir", "Msave", paste0("MlagT", tau))
   V <- JD$V[, ord]
   W <- crossprod(V, prep$COV.sqrt.i)
   S <- tcrossprod(prep$X.C, W)
